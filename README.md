@@ -1,6 +1,7 @@
 # 教学工具集
 
 这是一个集成了多种教学辅助工具的应用，包括：
+- 📝 **试卷生成器**：上海高中英语组卷，预览试卷/答案并导出 Word（功能与独立站点相同）
 - 📝 **默写纸生成器**：生成表格形式的默写练习PDF
 - 📄 **成绩小分条生成器**：生成学生成绩小分条PDF
 - 📊 **日志查看**（管理员功能）：查看系统运行日志
@@ -9,6 +10,13 @@
 
 ```bash
 pip install pandas reportlab openpyxl streamlit
+```
+
+试卷生成器还需要本机安装 **Node.js**。进入 `exam_paper_generator` 后执行一次：
+
+```bash
+cd exam_paper_generator
+npm install
 ```
 
 ## 新功能 🎉

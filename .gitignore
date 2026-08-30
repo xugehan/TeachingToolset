@@ -2,3 +2,5 @@
 .venv
 .DS_Store
 .idea
+exam_paper_generator/node_modules/
+exam_paper_generator/data/

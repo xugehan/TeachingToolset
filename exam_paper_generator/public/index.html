@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>上海高中英语试卷生成器</title>
+    <link rel="stylesheet" href="/styles.css?v=20260830a" />
+  </head>
+  <body class="page-select">
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark">卷</div>
+          <div>
+            <div class="brand-title">上海高中英语试卷生成器</div>
+            <div class="brand-subtitle" id="brandSubtitle">第一步 · 确认题型</div>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button class="ghost-button" id="backToSelectButton" type="button" hidden>← 重新选题型</button>
+          <button class="ghost-button" id="newExamButton" type="button">新建</button>
+          <button class="ghost-button" id="saveExamButton" type="button">保存草稿</button>
+          <button class="secondary-button" id="printButton" type="button" hidden>打印 / PDF</button>
+          <button class="primary-button" id="wordButton" type="button" hidden>导出 Word</button>
+        </div>
+      </header>
+
+      <!-- Step 1: 选择题型 -->
+      <section class="select-step" id="selectStep">
+        <section class="site-intro" aria-label="产品简介">
+          <div class="site-intro-main">
+            <p class="site-intro-kicker">写给出卷的你</p>
+            <h1 class="site-intro-title">上海高中英语试卷生成器</h1>
+            <p class="site-intro-lead">
+              排题号、对版式、对齐空格……这些重复劳动交给我。你省下来的时间，去琢磨题目本身，去做更有意思的事。
+            </p>
+            <ul class="site-intro-points">
+              <li>选题型 → 粘内容 → 预览成卷，少一点机械劳动，多一点心思花在题目上。</li>
+              <li>草稿会自动保存在你本机浏览器；也可点右上角「保存草稿」。下次打开同一浏览器，就能接着出。</li>
+              <li>整体排好后若还要微调，导出 Word 再改就行，不硬刚。</li>
+              <li>诚实声明：暂时还不会插图片和表格，先委屈一下，后面再进化～</li>
+            </ul>
+            <p class="site-intro-copy">
+              Copyright © 徐戈涵　请勿商用；仅限本校老师之间交流、教学使用哦。
+            </p>
+          </div>
+
+          <form class="site-feedback" id="feedbackForm">
+            <div class="site-feedback-head">
+              <strong>踩到坑了？</strong>
+              <span>丢个问题过来，后台小姐姐尽快帮你瞅瞅～</span>
+            </div>
+            <label class="site-feedback-field">
+              <span>怎么称呼（可选）</span>
+              <input id="feedbackName" name="name" type="text" maxlength="40" placeholder="例如：高一英语组 · 小王" />
+            </label>
+            <label class="site-feedback-field">
+              <span>问题描述</span>
+              <textarea id="feedbackMessage" name="message" rows="4" maxlength="2000" required placeholder="哪里不对、期望怎样，尽量写清楚一点～"></textarea>
+            </label>
+            <div class="site-feedback-field">
+              <span>截图（可选，最多 4 张）</span>
+              <div class="feedback-photo-box">
+                <input id="feedbackPhotos" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple />
+                <label class="feedback-photo-picker" for="feedbackPhotos">＋ 添加照片</label>
+                <div class="feedback-photo-preview" id="feedbackPhotoPreview"></div>
+              </div>
+            </div>
+            <div class="site-feedback-actions">
+              <button class="primary-button" type="submit" id="feedbackSubmit">提交问题</button>
+              <span class="site-feedback-hint" id="feedbackHint" aria-live="polite"></span>
+            </div>
+          </form>
+        </section>
+
+        <div class="select-hero">
+          <div class="eyebrow">第一步 · 确认题型</div>
+          <h2 class="select-hero-heading">确认试卷题目构成</h2>
+          <p>勾选、拖拽调整顺序；点「调整」改题号与分值。自定义可归属到任一现有大题。</p>
+        </div>
+
+        <div class="select-toolbar">
+          <div class="select-toolbar-meta">
+            <label class="select-title-field">试卷标题<input id="selectExamTitle" /></label>
+            <label>考试年月<input id="selectExamYearMonth" placeholder="如 2026.11" /></label>
+            <label>考试时间<input id="selectExamDuration" /></label>
+            <label>总分（自动）<input id="selectExamTotalScore" type="number" readonly /></label>
+          </div>
+          <div class="select-toolbar-actions">
+            <button class="ghost-button" id="selectAllTypes" type="button">全选常用</button>
+            <button class="ghost-button" id="clearAllTypes" type="button">清空勾选</button>
+            <button class="primary-button" id="confirmTypesButton" type="button">确认，进入组卷页 →</button>
+          </div>
+        </div>
+
+        <div class="major-list" id="typeGrid"></div>
+        <div class="type-add-row">
+          <select id="addBuiltinTypeSelect" class="add-builtin-select" aria-label="添加已删题型"></select>
+          <button class="add-custom-type-button" id="addCustomTypeButton" type="button">＋ 添加自定义题目</button>
+        </div>
+      </section>
+
+      <!-- Step 2: 三栏组卷 -->
+      <main class="workspace" id="workspace" hidden>
+        <aside class="sidebar" id="sidebar">
+          <div class="sidebar-heading">
+            <div>
+              <div class="eyebrow">试卷结构</div>
+              <h2>各大题</h2>
+            </div>
+          </div>
+          <div class="sidebar-help">点击左侧大题切换录入；顺序与题号已在上一页确认。</div>
+          <div id="sectionList" class="section-list"></div>
+        </aside>
+
+        <div class="resize-handle" id="resizeSidebar" role="separator" aria-orientation="vertical" aria-label="调整左侧宽度" title="拖动调节宽度"></div>
+
+        <section class="editor-column" id="editorColumn">
+          <div class="editor-header">
+            <div>
+              <div class="eyebrow">题目录入</div>
+              <h1>内容与答案</h1>
+            </div>
+            <div class="status-pill" id="saveStatus">未保存</div>
+          </div>
+
+          <section class="paper-meta panel">
+            <div class="panel-title-row">
+              <div>
+                <div class="eyebrow">基本信息</div>
+                <h3>试卷信息</h3>
+              </div>
+              <span class="panel-note">出现在试卷与导出文件首页</span>
+            </div>
+            <div class="meta-grid">
+              <label class="wide">试卷标题<input id="examTitle" /></label>
+              <label>考试年月<input id="examYearMonth" placeholder="如 2026.11" /></label>
+              <label>考试时间<input id="examDuration" /></label>
+              <label>总分（自动）<input id="examTotalScore" type="number" readonly /></label>
+              <label>纸张<select id="paperSize"><option value="A4">A4</option><option value="Letter">Letter</option></select></label>
+            </div>
+          </section>
+
+          <section class="style-panel panel">
+            <div class="panel-title-row">
+              <div>
+                <div class="eyebrow">全卷默认样式</div>
+                <h3>字体与间距</h3>
+              </div>
+              <button class="text-button" id="resetStyleButton" type="button">恢复默认</button>
+            </div>
+            <div class="style-grid">
+              <label>英文字体<select id="fontFamily"><option>Times New Roman</option><option>Arial</option><option>Calibri</option><option>Georgia</option></select></label>
+              <label>中文字体<select id="cjkFontFamily"><option>宋体</option><option>黑体</option><option>微软雅黑</option><option>楷体</option><option>Times New Roman</option></select></label>
+              <label>字号（pt）<input id="fontSize" type="number" min="8" max="30" step="0.5" /></label>
+              <label>行距<select id="lineSpacing"><option value="1">单倍</option><option value="1.15">1.15 倍</option><option value="1.2">1.2 倍</option><option value="1.5">1.5 倍</option><option value="2">2 倍</option><option value="fixed">固定值</option></select></label>
+              <label id="fixedLineHeightLabel" class="hidden">固定行距（pt）<input id="fixedLineHeight" type="number" min="8" max="60" step="0.5" /></label>
+              <label>段后间距（pt）<input id="paragraphAfter" type="number" min="0" max="40" step="0.5" /></label>
+              <label>首行缩进（字符）<input id="firstLineIndent" type="number" min="0" max="4" step="0.5" /></label>
+              <label>空格下划线长度<input id="blankLength" type="number" min="3" max="20" /></label>
+            </div>
+            <div class="style-hint">默认：五号（10.5 pt）· 行距 1.2 · 英文 Times New Roman · 中文宋体</div>
+          </section>
+
+          <section class="content-panel panel">
+            <div class="panel-title-row">
+              <div>
+                <div class="eyebrow">当前大题</div>
+                <h3 id="activeSectionHeading">请选择一个大题</h3>
+              </div>
+            </div>
+            <div id="activeSectionEditor" class="active-editor-empty">从左侧选择一个大题开始录入内容。</div>
+          </section>
+        </section>
+
+        <div class="resize-handle" id="resizePreview" role="separator" aria-orientation="vertical" aria-label="调整右侧宽度" title="拖动调节宽度"></div>
+
+        <aside class="preview-column" id="previewColumn">
+          <div class="preview-header">
+            <div>
+              <div class="eyebrow">实时预览</div>
+              <h2 id="previewHeading">试卷效果</h2>
+            </div>
+            <div class="preview-header-actions">
+              <div class="preview-mode-toggle" role="tablist" aria-label="预览模式">
+                <button type="button" class="preview-mode-button active" id="previewPaperMode" data-mode="paper">试卷纸</button>
+                <button type="button" class="preview-mode-button" id="previewAnswerMode" data-mode="answer">答案纸</button>
+              </div>
+              <span class="preview-badge" id="previewBadge">A4 · 可打印</span>
+            </div>
+          </div>
+          <div id="previewPaper" class="preview-pages"></div>
+        </aside>
+      </main>
+    </div>
+    <div id="toast" class="toast" role="status"></div>
+    <script src="/app.js?v=20260830b"></script>
+  </body>
+</html>

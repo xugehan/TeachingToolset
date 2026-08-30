@@ -28,7 +28,25 @@ st.markdown("""
 """)
 
 # Feature cards
-col1, col2 = st.columns(2)
+col0, col1 = st.columns(2)
+
+with col0:
+    st.subheader("📝 试卷生成器")
+    st.markdown("""
+    **功能**：生成上海高中英语试卷与答案 Word
+    
+    **适用场景**：
+    - 期末 / 期中组卷
+    - 粘贴题目后自动编号、预览
+    - 试卷纸 / 答案纸切换导出
+    
+    **特点**：
+    - 功能与独立试卷生成器完全相同
+    - 本机草稿自动保存
+    - 导出 Word，可再微调
+    
+    👉 点击左侧导航栏的 **"试卷生成器"** 开始使用
+    """)
 
 with col1:
     st.subheader("📝 重默生成器")
@@ -48,6 +66,8 @@ with col1:
     
     👉 点击左侧导航栏的 **"📝 默写纸生成器"** 开始使用
     """)
+
+col2, col3 = st.columns(2)
 
 with col2:
     st.subheader("📄 成绩小分条")
@@ -69,8 +89,6 @@ with col2:
     👉 点击左侧导航栏的 **"📄 成绩小分条"** 开始使用
     """)
 
-col3, col4 = st.columns(2)
-
 with col3:
     st.subheader("🐛 问题报告")
     st.markdown("""
@@ -90,6 +108,8 @@ with col3:
     
     👉 点击左侧导航栏的 **"🐛 问题报告"** 开始使用
     """)
+
+col4, _ = st.columns(2)
 
 with col4:
     st.subheader("📊 日志查看")
@@ -121,6 +141,7 @@ with st.expander("🚀 快速开始", expanded=False):
        - 在左侧导航栏点击需要的功能页面
     
     2. **准备材料**
+       - 试卷生成器：不需要 Excel，打开后按页内步骤选题型、粘贴题目即可组卷
        - 重默生成器：准备15个项目（10个单词 + 5个短语）
        - 成绩小分条：准备包含学生成绩的Excel文件
     
