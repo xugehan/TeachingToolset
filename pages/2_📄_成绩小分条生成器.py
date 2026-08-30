@@ -8,6 +8,8 @@ import streamlit as st
 import pandas as pd
 import os
 import tempfile
+import glob  # Added for file searching
+from PIL import Image  # Added for image processing
 from io import BytesIO
 from student_grades_generator import generate_pdf
 from reportlab.lib.pagesizes import A4, landscape, portrait
@@ -81,6 +83,24 @@ def validate_filename(filename):
     return True, None, final_filename
 
 
+def get_student_class_stub(student_id, df):
+    """
+    Stub: 根据学号获取班级
+    用于定位答题卡目录结构: <selected_dir>/<班级>/...
+    """
+    # 尝试查找班级列
+    id_cols = [c for c in df.columns if str(c).strip() in ("学号", "学号/Code", "code", "Code")]
+
+    if id_cols:
+        id_col = id_cols[0]
+        # 查找对应行
+        student_row = df[df[id_col].astype(str) == str(student_id)]
+        if not student_row.empty:
+            class_id = int(str(student_id)[2:4])
+            return f"高一{class_id}班"
+    return ""
+
+
 st.title("📄 学生成绩小分条生成器")
 st.markdown("---")
 
@@ -125,6 +145,15 @@ with st.sidebar:
         key="font_file",
         help="支持中文的字体文件，如宋体、黑体等"
     )
+
+    # --- Added: Answer Sheet Directory Input ---
+    st.markdown("---")
+    st.header("🖼️ 答题卡设置")
+    image_dir = st.text_input(
+        "答题卡图片根目录",
+        help="存放学生答题卡图片的本地文件夹路径。\n结构: <目录>/<班级>/<学号>(姓名)/...-01.png"
+    )
+    # -------------------------------------------
 
     st.markdown("---")
     st.markdown("### 💡 使用说明")
@@ -216,6 +245,60 @@ else:
 
 st.markdown("---")
 
+# --- Added: Image Cropper Logic ---
+crop_rect = None
+if image_dir:
+    st.header("✂️ 答题卡截取设置")
+    if not os.path.isdir(image_dir):
+        st.error(f"❌ 目录不存在: {image_dir}")
+    else:
+        # 尝试获取第一个学生的信息用于预览
+        if code_col:
+            first_student = df.iloc[0]
+            s_id = str(first_student[code_col])
+            s_name = str(first_student[name_col]) if name_col else ""
+            s_class = get_student_class_stub(s_id, df)
+
+            # 寻找图片: <selected_dir>/<班级>/<学号>（<姓名>)/<学号>_<学科名>-<序号>.png
+            # 1. 进入班级目录
+            class_dir = os.path.join(image_dir, s_class)
+
+            # 2. 寻找学生文件夹，匹配 学号* (处理可能的括号格式差异)
+            student_dir_pattern = os.path.join(class_dir, f"{s_id}*")
+            found_dirs = glob.glob(student_dir_pattern)
+
+            if found_dirs:
+                student_dir = found_dirs[0]
+                # 3. 寻找序号为01的图片 (匹配结尾为01.png)
+                img_pattern = os.path.join(student_dir, "*01.png")
+                found_imgs = glob.glob(img_pattern)
+
+                if found_imgs:
+                    preview_img_path = found_imgs[0]
+                    st.info(f"正在使用学生 {s_name} ({s_id}) 的答题卡进行定位: {os.path.basename(preview_img_path)}")
+
+                    try:
+                        from streamlit_cropper import st_cropper
+                        img = Image.open(preview_img_path)
+
+                        st.markdown("👉 **请在下方图片上用鼠标框选需要截取的区域**")
+                        # 获取裁剪框坐标
+                        box = st_cropper(img, realtime_update=True, box_color='red', aspect_ratio=None, return_type='box')
+                        crop_rect = box # {'left': x, 'top': y, 'width': w, 'height': h}
+
+                        st.caption(f"裁剪区域: {crop_rect}")
+                    except ImportError:
+                        st.error("⚠️ 请安装 `streamlit-cropper` 以使用此功能: `pip install streamlit-cropper`")
+                else:
+                    st.warning(f"在 {student_dir} 中未找到序号为01的图片")
+            else:
+                st.warning(f"未找到学生 {s_id} 的文件夹 (预期路径: {student_dir_pattern})")
+        else:
+            st.warning("无法识别学号列，无法定位答题卡")
+
+st.markdown("---")
+# ----------------------------------
+
 # Configuration columns
 col1, col2 = st.columns([1, 1])
 
@@ -268,7 +351,7 @@ with col1:
     card_h = st.slider(
         "卡片高度（点）",
         min_value=80.0,
-        max_value=250.0,
+        max_value=500.0,
         value=110.0,
         step=10.0,
         help="每个卡片的高度，单位：点（point）"
@@ -370,7 +453,10 @@ with col2:
                 body_font_size=body_font_size,
                 detail_cols=detail_cols,
                 preview_only=True,
-                max_preview_cards=cards_per_page
+                max_preview_cards=cards_per_page,
+                image_dir=image_dir if crop_rect else None,
+                crop_rect=crop_rect,
+                id_to_class_func=get_student_class_stub
             )
 
             # Convert PDF to image using PyMuPDF (fitz)
@@ -463,7 +549,12 @@ if st.button("🎨 生成PDF", type="primary", width='stretch'):
                 body_font_size=body_font_size,
                 detail_cols=detail_cols,
                 preview_only=False,
-                max_preview_cards=None
+                max_preview_cards=None,
+                # --- Added Parameters ---
+                image_dir=image_dir if crop_rect else None,
+                crop_rect=crop_rect,
+                id_to_class_func=get_student_class_stub
+                # ------------------------
             )
 
             # Read PDF and offer download

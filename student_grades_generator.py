@@ -14,13 +14,16 @@ Example:
 
 import argparse
 import os
-from typing import List, Tuple
+import glob
+from typing import List, Tuple, Optional, Dict, Callable
 
 import pandas as pd
 from reportlab.lib.pagesizes import A4, landscape, portrait
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.lib.utils import ImageReader
+from PIL import Image
 
 
 def try_register_font(font_path: str, font_name: str = "CNFont") -> str:
@@ -151,6 +154,166 @@ def draw_card(
 
     c.restoreState()
 
+def get_answer_sheet_image(
+    image_dir: str,
+    student_id: str,
+    student_class: str,
+    crop_rect: Optional[Dict[str, int]] = None
+) -> Optional[Image.Image]:
+    """
+    Retrieve and crop the answer sheet image for a student.
+    Path format: <image_dir>/<class>/<student_id>*/...-01.png
+    """
+    if not image_dir or not student_id or not student_class:
+        return None
+
+    # 1. Construct class directory path
+    class_dir = os.path.join(image_dir, str(student_class))
+    if not os.path.isdir(class_dir):
+        return None
+
+    # 2. Find student directory (matching student_id*)
+    student_dir_pattern = os.path.join(class_dir, f"{student_id}*")
+    found_dirs = glob.glob(student_dir_pattern)
+    if not found_dirs:
+        return None
+
+    student_dir = found_dirs[0]
+
+    # 3. Find image ending with 01.png
+    img_pattern = os.path.join(student_dir, "*01.png")
+    found_imgs = glob.glob(img_pattern)
+    if not found_imgs:
+        return None
+
+    img_path = found_imgs[0]
+
+    try:
+        img = Image.open(img_path)
+        if crop_rect:
+            # crop_rect format: {'left': x, 'top': y, 'width': w, 'height': h}
+            left = crop_rect['left']
+            top = crop_rect['top']
+            right = left + crop_rect['width']
+            bottom = top + crop_rect['height']
+            img = img.crop((left, top, right, bottom))
+        return img
+    except Exception as e:
+        print(f"[Warn] Failed to process image for student {student_id}: {e}")
+        return None
+
+
+def draw_card_with_image(
+    c: canvas.Canvas,
+    x: float,
+    y: float,
+    w: float,
+    h: float,
+    name: str,
+    class_: str,
+    code: str,
+    kv_left: List[Tuple[str, str]],
+    kv_middle: List[Tuple[str, str]],
+    kv_right: List[Tuple[str, str]],
+    font: str,
+    card_title: str = "",
+    title_font_size: int = 14,
+    card_title_font_size: int = 12,
+    body_font_size: int = 10,
+    corner_radius: int = 10,
+    answer_sheet_img: Optional[Image.Image] = None
+):
+    """
+    Draw a single rounded-rectangle card with a title, two-column key:value body,
+    and optionally an answer sheet image at the bottom.
+    """
+    # Card background
+    c.saveState()
+    c.setLineWidth(1)
+    c.setStrokeColorRGB(0.25, 0.35, 0.55)
+    c.setFillColorRGB(0.97, 0.98, 1.0)
+    # Rounded rectangle path
+    c.roundRect(x, y, w, h, corner_radius, stroke=1, fill=1)
+
+    inner_margin = 10
+    title_y = y + h - inner_margin - title_font_size
+
+    # Title (student name, clsss and code) - left side
+    c.setFont(font, title_font_size)
+    c.setFillColorRGB(0.12, 0.18, 0.35)
+    c.drawString(x + inner_margin, title_y, f"{name} {code}")
+
+    # Card title - right side, smaller font
+    if card_title:
+        c.setFont(font, card_title_font_size)
+        c.setFillColorRGB(0.12, 0.18, 0.35)
+        title_width = c.stringWidth(card_title, font, card_title_font_size)
+        c.drawString(x + w - inner_margin - title_width, title_y, card_title)
+
+    # Divider line under title
+    c.setStrokeColorRGB(0.75, 0.8, 0.95)
+    c.line(x + inner_margin, title_y - 4, x + w - inner_margin, title_y - 4)
+
+    # Body text
+    c.setFont(font, body_font_size)
+    c.setFillColorRGB(0.1, 0.1, 0.1)
+
+    # Determine available height for text
+    body_top = title_y - 20
+
+    # If image exists, reserve space at bottom
+    img_height = 0
+    if answer_sheet_img:
+        # Calculate image dimensions to fit width
+        img_w, img_h = answer_sheet_img.size
+        avail_w = w - 2 * inner_margin
+        scale = avail_w / img_w
+        img_height = img_h * scale
+
+        # Draw image at bottom
+        img_y = y + inner_margin
+        c.drawImage(ImageReader(answer_sheet_img), x + inner_margin, img_y, width=avail_w, height=img_height)
+
+        # Adjust body area
+        # Add some padding above image
+        img_height += 10
+
+    # Two columns area
+    line_height = body_font_size + 4
+    col_gap = 8
+    col_w = (w - inner_margin * 2 - col_gap * 2) / 3
+
+    # Left column
+    cur_y = body_top
+    min_y = y + inner_margin + img_height # Stop before image
+
+    for k, v in kv_left:
+        if cur_y < min_y: break
+        text = f"{k}: {v}"
+        c.drawString(x + inner_margin, cur_y, text)
+        cur_y -= line_height
+
+    # Middle column
+    cur_y = body_top
+    right_x = x + inner_margin + col_w + col_gap
+    for k, v in kv_middle:
+        if cur_y < min_y: break
+        text = f"{k}: {v}"
+        c.drawString(right_x, cur_y, text)
+        cur_y -= line_height
+
+    # Right column
+    cur_y = body_top
+    right_x = right_x + col_w + col_gap
+    for k, v in kv_right:
+        if cur_y < min_y: break
+        text = f"{k}: {v}"
+        c.drawString(right_x, cur_y, text)
+        cur_y -= line_height
+
+    c.restoreState()
+
+
 
 def generate_pdf(
     df: pd.DataFrame,
@@ -169,7 +332,10 @@ def generate_pdf(
     body_font_size: int = 8,
     detail_cols: list = None,
     preview_only: bool = False,
-    max_preview_cards: int = None
+    max_preview_cards: int = None,
+    image_dir: str = None,
+    crop_rect: Dict[str, int] = None,
+    id_to_class_func: Callable = None
 ):
     """
     Generate PDF from DataFrame.
@@ -192,9 +358,9 @@ def generate_pdf(
         detail_cols: List of columns to display (if None, auto-detect)
         preview_only: If True, only render first page with suffix
         max_preview_cards: Maximum cards to render for preview
-
-    Returns:
-        None
+        image_dir: Root directory for answer sheet images
+        crop_rect: Dictionary with crop coordinates {'left', 'top', 'width', 'height'}
+        id_to_class_func: Function to map student ID to class name
     """
     # Page setup
     page_w, page_h = A4
@@ -264,8 +430,37 @@ def generate_pdf(
         code = format_value(row[code_col])
         class_ = format_value(row[class_col]) if class_col in df.columns else ""
 
+        # Get answer sheet image if configured
+        answer_sheet_img = None
+        img_height_pts = 0
+        if image_dir and crop_rect:
+            # Determine class for image lookup
+            lookup_class = class_
+            if id_to_class_func:
+                lookup_class = id_to_class_func(code, df)
+
+            answer_sheet_img = get_answer_sheet_image(
+                image_dir=image_dir,
+                student_id=str(code),
+                student_class=str(lookup_class),
+                crop_rect=crop_rect
+            )
+
+            if answer_sheet_img:
+                # Calculate expected image height in points to adjust text layout
+                # Logic mirrors draw_card_with_image
+                inner_margin = 10
+                img_w, img_h = answer_sheet_img.size
+                avail_w = card_w - 2 * inner_margin
+                scale = avail_w / img_w
+                img_height_pts = img_h * scale + 10 # +10 for padding
+
+        # Adjust max items per column based on image height
+        available_h = card_h - 36 - img_height_pts
+        current_max_each_col = max(1, int(available_h // line_height))
+
         values = [format_value(row[col]) for col in detail_cols]
-        left, middle, right = split_columns_evenly(detail_cols, values, max_each_col)
+        left, middle, right = split_columns_evenly(detail_cols, values, current_max_each_col)
 
         pos_in_page = card_count_on_page % cards_per_page
         r = pos_in_page // cols
@@ -275,7 +470,7 @@ def generate_pdf(
         top_area = page_h - margin - card_h
         y = top_area - r * (card_h + gutter)
 
-        draw_card(
+        draw_card_with_image(
             c,
             x,
             y,
@@ -293,6 +488,7 @@ def generate_pdf(
             card_title_font_size=card_title_font_size,
             body_font_size=body_font_size,
             corner_radius=10,
+            answer_sheet_img=answer_sheet_img
         )
 
         card_count_on_page += 1

@@ -4,6 +4,7 @@ reportlab>=3.6.0
 openpyxl>=3.0.0
 xlrd>=2.0.0
 streamlit>=1.20.0
+streamlit-cropper>=0.2.0
 
 # Optional: for PDF preview feature
 PyMuPDF>=1.23.0
