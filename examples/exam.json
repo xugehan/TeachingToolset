@@ -1,0 +1,124 @@
+{
+  "exam": {
+    "title": "2026学年第一学期高一年级英语期中考试",
+    "total_score": 150,
+    "duration": "120分钟",
+    "year_month": "2026.11"
+  },
+  "style": {
+    "font_en": "Times New Roman",
+    "font_zh": "宋体",
+    "size_pt": 10.5,
+    "line_spacing": 1.2
+  },
+  "sections": [
+    {
+      "major": "I",
+      "major_title": "Listening Comprehension",
+      "section_label": "Section A",
+      "type": "listening",
+      "instruction": "Directions: In Section A, you will hear ten short conversations between two speakers. At the end of each conversation, a question will be asked about what was said. Both the conversation and the question will be spoken only once. After you hear a conversation and the question about it, read the four possible answers on your paper, and decide which one is the best answer to the question you have heard.",
+      "content": "1. A. In a library.\nB. In a bookstore.\nC. In a classroom.\nD. In a museum.\n2. A. Teacher and student.\nB. Doctor and patient.\nC. Waiter and customer.\nD. Driver and passenger."
+    },
+    {
+      "major": "I",
+      "major_title": "Listening Comprehension",
+      "section_label": "Section B",
+      "type": "listening",
+      "instruction": "Directions: In Section B, you will hear two passages and one longer conversation. After each, you will be asked several questions. The passages and the conversation will be read twice.",
+      "content": "Questions 11 through 13 are based on the following passage.\n11. A. A school trip.\nB. A science project.\nC. A sports meeting.\nD. A music festival."
+    },
+    {
+      "major": "II",
+      "major_title": "Grammar and Vocabulary",
+      "section_label": "Section A",
+      "type": "grammar",
+      "instruction": "Directions: After reading the passage below, fill in the blanks to make the passage coherent and grammatically correct. For the blanks with a given word, fill in each blank with the proper form of the given word; for the other blanks, use one word that best fits each blank.",
+      "content": "(A)\nWhen Tom first arrived in the city, he found (21)______ hard to make new friends. He kept telling himself that things (22)______ (get) better if he stayed patient."
+    },
+    {
+      "major": "II",
+      "major_title": "Grammar and Vocabulary",
+      "section_label": "Section B",
+      "type": "vocabulary",
+      "instruction": "Directions: Fill in each blank with a proper word chosen from the box. Each word can be used only once. Note that there is one word more than you need.",
+      "word_bank": [
+        "concern",
+        "effective",
+        "gradually",
+        "maintain",
+        "obvious",
+        "range"
+      ],
+      "content": "41. Regular exercise is an ______ way to reduce stress.\n42. The park offers a wide ______ of outdoor activities."
+    },
+    {
+      "major": "III",
+      "major_title": "Reading Comprehension",
+      "section_label": "Section A",
+      "type": "cloze",
+      "instruction": "Directions: For each blank in the following passage there are four words or phrases marked A, B, C and D. Fill in each blank with the word or phrase that best fits the context.",
+      "content": "Learning a new language takes time, but small daily habits can (51) ______ a big difference.\n51. A. make  B. take  C. keep  D. find"
+    },
+    {
+      "major": "III",
+      "major_title": "Reading Comprehension",
+      "section_label": "Section B",
+      "type": "reading",
+      "reading_part_label": "(A)",
+      "instruction": "Directions: Read the following passages. Each passage is followed by several questions. For each of them there are four choices marked A, B, C and D. Choose the one that fits best according to the information given in the passage you have just read.",
+      "content": "Many students think revision means reading notes again and again. Research shows that testing yourself is often more useful.\n65. What is the main idea of the passage?\nA. Reading notes is useless.\nB. Self-testing helps revision.\nC. Students dislike exams.\nD. Research is always right."
+    },
+    {
+      "major": "IV",
+      "major_title": "Translation",
+      "type": "translation",
+      "instruction": "Directions: Translate the following sentences into English, using the words given in the brackets.",
+      "items": [
+        {
+          "no": 72,
+          "text": "只要你坚持练习，口语一定会有进步。",
+          "hints": "as long as",
+          "score": 4
+        },
+        {
+          "no": 73,
+          "text": "令我们惊讶的是，他最终接受了这个挑战。",
+          "hints": "to one's surprise",
+          "score": 4
+        }
+      ]
+    },
+    {
+      "major": "V",
+      "major_title": "Guided Writing",
+      "type": "writing",
+      "instruction": "Directions: Write an English composition in 120–150 words according to the instructions given below in Chinese.",
+      "content": "学校将举办英语读书周。请你写一封邮件给外教 Mr. Green，内容包括：\n- 活动时间与地点\n- 需要他做的事\n- 你的期待"
+    }
+  ],
+  "answers": [
+    {
+      "title": "I. Listening Comprehension",
+      "text": "1-5 B C A D B\n11-13 A C B"
+    },
+    {
+      "title": "II. Grammar and Vocabulary",
+      "text": "21. it  22. would get\n41. effective  42. range"
+    },
+    {
+      "title": "III. Reading Comprehension",
+      "text": "51. A\n65. B"
+    },
+    {
+      "title": "IV. Translation",
+      "text": "72. As long as you keep practising, your spoken English is bound to improve.\n73. To our surprise, he finally took on the challenge."
+    }
+  ],
+  "listening_scripts": [
+    {
+      "label": "Section A",
+      "text": "1. W: Excuse me, where can I find the history books?\nM: They are on the second floor, next to the magazines.\nQ: Where does the conversation most probably take place?"
+    }
+  ]
+}
